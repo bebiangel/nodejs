@@ -8,6 +8,7 @@ var template = require("../lib/template.js");
 router.get("/create", (request, response) => {
   //
   var title = "WEB - create";
+  var authStatusUI = request.authStatusUI;
   var list = template.list(request.list);
   var html = template.HTML(
     title,
@@ -19,7 +20,8 @@ router.get("/create", (request, response) => {
           <p><input type="submit"></p>
         </form>
         `,
-    ``
+    ``,
+    authStatusUI
   );
   response.send(html);
 });
@@ -82,6 +84,48 @@ router.post("/delete_process", (request, response) => {
   });
 });
 
+router.get("/login", (request, response, next) => {
+  //
+  var title = request.params.pageId;
+  var sanitizedTitle = sanitizeHtml(title);
+  var list = template.list(request.list);
+  var html = template.HTML(
+    sanitizedTitle,
+    list,
+    ` 
+    <form action="login_process" method="post">
+      <p><input type="text" name="email" placeholder="email"></p>
+      <p><input type="password" name="password" placeholder="password"></p>
+      <p><input type="submit"></p>
+    </form>
+    <a href="/topic/create">create</a> 
+    `
+  );
+  response.send(html);
+});
+
+router.post("/login_process", (request, response) => {
+  //
+  var post = request.body;
+  if (post.email === "jwhan@gmail.com" && post.password === "1234") {
+    response.cookie("email", "jwhan@gmail.com");
+    response.cookie("password", "1234");
+    response.cookie("nick", "jaewoos");
+    response.redirect("/");
+  } else {
+    response.send("Who?");
+  }
+});
+
+router.get("/logout_process", (request, response) => {
+  //
+  console.log("logout!!");
+  response.clearCookie("email");
+  response.clearCookie("password");
+  response.clearCookie("nick");
+  response.redirect("/");
+});
+
 router.get("/:pageId", function(request, response, next) {
   //
   var filteredId = path.parse(request.params.pageId).base;
@@ -93,6 +137,7 @@ router.get("/:pageId", function(request, response, next) {
       var title = request.params.pageId;
       var sanitizedTitle = sanitizeHtml(title);
       var sanitizeDescription = sanitizeHtml(description);
+      var authStatusUI = request.authStatusUI;
       var list = template.list(request.list);
       var html = template.HTML(
         sanitizedTitle,
@@ -103,7 +148,8 @@ router.get("/:pageId", function(request, response, next) {
             <form action="/topic/delete_process" method="post">
               <input type="hidden" name="pageId" value="${sanitizedTitle}">
               <input type="submit" value="delete">
-            </form>`
+            </form>`,
+        authStatusUI
       );
       response.send(html);
     }
