@@ -3,12 +3,16 @@ var router = express.Router();
 var path = require("path");
 var fs = require("fs");
 var sanitizeHtml = require("sanitize-html");
-var template = require("../lib/template.js");
+var template = require("../lib/template");
+var auth = require("../lib/auth");
 
 router.get("/create", (request, response) => {
   //
+  if (!auth.isOwner(request, response)) {
+    response.redirect("/");
+    return false;
+  }
   var title = "WEB - create";
-  var authStatusUI = request.authStatusUI;
   var list = template.list(request.list);
   var html = template.HTML(
     title,
@@ -21,13 +25,17 @@ router.get("/create", (request, response) => {
         </form>
         `,
     ``,
-    authStatusUI
+    auth.statusUI(request, response)
   );
   response.send(html);
 });
 
 router.post("/create_process", (request, response) => {
   //
+  if (!auth.isOwner(request, response)) {
+    response.redirect("/");
+    return false;
+  }
   var post = request.body;
   var title = post.title;
   var description = post.description;
@@ -38,6 +46,10 @@ router.post("/create_process", (request, response) => {
 
 router.get("/update/:pageId", (request, response) => {
   //
+  if (!auth.isOwner(request, response)) {
+    response.redirect("/");
+    return false;
+  }
   var filteredId = path.parse(request.params.pageId).base;
   fs.readFile(`data/${filteredId}`, "utf8", function(err, description) {
     var title = request.params.pageId;
@@ -55,7 +67,8 @@ router.get("/update/:pageId", (request, response) => {
             <p><input type="submit"></p>
           </form>
           `,
-      `<a href="/topic/create">create</a> <a href="/update/${sanitizedTitle}">update</a>`
+      `<a href="/topic/create">create</a> <a href="/update/${sanitizedTitle}">update</a>`,
+      auth.statusUI(request, response)
     );
     response.send(html);
   });
@@ -63,6 +76,10 @@ router.get("/update/:pageId", (request, response) => {
 
 router.post("/update_process", (request, response) => {
   //
+  if (!auth.isOwner(request, response)) {
+    response.redirect("/");
+    return false;
+  }
   var post = request.body;
   var id = post.id;
   var title = post.title;
@@ -76,54 +93,16 @@ router.post("/update_process", (request, response) => {
 
 router.post("/delete_process", (request, response) => {
   //
+  if (!auth.isOwner(request, response)) {
+    response.redirect("/");
+    return false;
+  }
   var post = request.body;
   var id = post.pageId;
   var filteredId = path.parse(id).base;
   fs.unlink(`data/${filteredId}`, function(error) {
     response.redirect("/");
   });
-});
-
-router.get("/login", (request, response, next) => {
-  //
-  var title = request.params.pageId;
-  var sanitizedTitle = sanitizeHtml(title);
-  var list = template.list(request.list);
-  var html = template.HTML(
-    sanitizedTitle,
-    list,
-    ` 
-    <form action="login_process" method="post">
-      <p><input type="text" name="email" placeholder="email"></p>
-      <p><input type="password" name="password" placeholder="password"></p>
-      <p><input type="submit"></p>
-    </form>
-    <a href="/topic/create">create</a> 
-    `
-  );
-  response.send(html);
-});
-
-router.post("/login_process", (request, response) => {
-  //
-  var post = request.body;
-  if (post.email === "jwhan@gmail.com" && post.password === "1234") {
-    response.cookie("email", "jwhan@gmail.com");
-    response.cookie("password", "1234");
-    response.cookie("nick", "jaewoos");
-    response.redirect("/");
-  } else {
-    response.send("Who?");
-  }
-});
-
-router.get("/logout_process", (request, response) => {
-  //
-  console.log("logout!!");
-  response.clearCookie("email");
-  response.clearCookie("password");
-  response.clearCookie("nick");
-  response.redirect("/");
 });
 
 router.get("/:pageId", function(request, response, next) {
@@ -137,7 +116,6 @@ router.get("/:pageId", function(request, response, next) {
       var title = request.params.pageId;
       var sanitizedTitle = sanitizeHtml(title);
       var sanitizeDescription = sanitizeHtml(description);
-      var authStatusUI = request.authStatusUI;
       var list = template.list(request.list);
       var html = template.HTML(
         sanitizedTitle,
@@ -149,7 +127,7 @@ router.get("/:pageId", function(request, response, next) {
               <input type="hidden" name="pageId" value="${sanitizedTitle}">
               <input type="submit" value="delete">
             </form>`,
-        authStatusUI
+        auth.statusUI(request, response)
       );
       response.send(html);
     }

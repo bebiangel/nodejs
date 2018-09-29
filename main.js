@@ -3,11 +3,16 @@ var app = express();
 var fs = require("fs");
 var bodyParser = require("body-parser");
 var compression = require("compression");
-var topicRouter = require("./routes/topic");
+
 var indexRouter = require("./routes/index");
+var topicRouter = require("./routes/topic");
+var authRouter = require("./routes/auth");
 //
 var cookie = require("cookie");
 var helmet = require("helmet");
+var session = require("express-session");
+var FileStore = require("session-file-store")(session);
+
 app.use(helmet());
 
 function authIsOwner(request, response) {
@@ -29,13 +34,23 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: false }));
 // source compress
 app.use(compression());
+
+app.use(
+  session({
+    secret: "keyboard cat",
+    resave: false,
+    saveUninitialized: true,
+    store: new FileStore()
+  })
+);
+
 // * 모든요청을 받지만 get방식만 받도록 함.
 app.get("*", function(request, response, next) {
   //
-  var authStatusUI = `<a href="/topic/login">login</a>`;
+  var authStatusUI = `<a href="/auth/login">login</a>`;
   var isOwner = authIsOwner(request, response);
   if (isOwner) {
-    authStatusUI = `<a href="/topic/logout_process">logout</a>`;
+    authStatusUI = `<a href="/auth/logout_process">logout</a>`;
   }
   fs.readdir("./data", function(error, files) {
     request.list = files;
@@ -47,9 +62,9 @@ app.get("*", function(request, response, next) {
 // route, routing
 // app.get('/', (req, res) => res.send("Hello World"));
 app.use("/", indexRouter);
-
 // 하위 router는 topic이 필요없다.
 app.use("/topic", topicRouter);
+app.use("/auth", authRouter);
 
 app.use((request, response, next) => {
   response.status(404).send(`Sorry can't find that!`);

@@ -1,13 +1,13 @@
 var express = require("express");
 var router = express.Router();
 var template = require("../lib/template.js");
+var auth = require("../lib/auth");
 
 router.get("/", function(request, response) {
   //
   var title = "Welcome";
   var description = "Hello Node.js";
   var list = template.list(request.list);
-  var authStatusUI = request.authStatusUI;
   var html = template.HTML(
     title,
     list,
@@ -15,7 +15,7 @@ router.get("/", function(request, response) {
       <img src="/images/hello.jpg" style="width:300px; display:block;">
       `,
     `<a href="/topic/create">create</a>`,
-    authStatusUI
+    auth.statusUI(request, response)
   );
   response.send(html);
 });
