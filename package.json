@@ -1,5 +1,5 @@
 {
-  "name": "web1_html_internet",
+  "name": "nodejs-tutorial",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
@@ -11,20 +11,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/web-n/web1_html_internet.git"
+    "url": "git+https://github.com/bebiangel/nodejs.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/web-n/web1_html_internet/issues"
+    "url": "https://github.com/bebiangel/nodejs/issues"
   },
-  "homepage": "https://github.com/web-n/web1_html_internet#readme",
+  "homepage": "https://github.com/bebiangel/nodejs#readme",
   "dependencies": {
     "body-parser": "^1.18.3",
     "compression": "^1.7.3",
+    "cookie": "^0.3.1",
     "express": "^4.16.3",
     "express-generator": "^4.16.0",
     "helmet": "^3.13.0",
+    "nodemon": "^1.18.4",
     "sanitize-html": "^1.19.0"
   }
 }
