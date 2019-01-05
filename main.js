@@ -44,6 +44,10 @@ app.use(
   })
 );
 
+// session을 내부적으로 사용하기 때문에 session 코드 다음에 있어야함.
+var passport = require("passport"),
+  LocalStrategy = require("passport-local").Strategy;
+
 // * 모든요청을 받지만 get방식만 받도록 함.
 app.get("*", function(request, response, next) {
   //
